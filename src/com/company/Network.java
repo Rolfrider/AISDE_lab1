@@ -75,8 +75,8 @@ public class Network {
     }
 
     public void showNet(){
-        System.out.println(vertexes.length);
-        System.out.println(edges.length);
+        System.out.println("Vertexes: " + vertexes.length);
+        System.out.println("Edges: " + edges.length);
         System.out.println(algorithm);
     }
 

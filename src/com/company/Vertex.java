@@ -2,13 +2,7 @@ package com.company;
 
 public class Vertex {
 
-
     int id, x, y;
-
-
-    public Vertex(){
-
-    }
 
     public Vertex(int id, int x , int y){
 

@@ -8,6 +8,7 @@ public class Main {
         Network net = new Network();
         net.readNetwork("we.txt");
         net.showNet();
+        
 
     }
 }
