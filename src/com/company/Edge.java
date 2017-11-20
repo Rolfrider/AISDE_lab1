@@ -1,9 +1,11 @@
 package com.company;
 
-public class Edge {
+public class Edge implements Comparable<Edge> {
 
 
     int id, startVertexId, endVertexId, value;
+
+    Edge(){}
 
 
     public Edge(int id, int startVertexId, int endVertexId, int value){
@@ -11,6 +13,10 @@ public class Edge {
         this.startVertexId = startVertexId;
         this.endVertexId = endVertexId;
         this.value = value;
+    }
+
+    public int compareTo(Edge e){
+        return this.value - e.value;
     }
 
     public int getId(){

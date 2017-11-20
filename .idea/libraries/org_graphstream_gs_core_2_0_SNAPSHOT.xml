@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="org.graphstream:gs-core:2.0-SNAPSHOT" type="repository">
+    <properties maven-id="org.graphstream:gs-core:2.0-SNAPSHOT" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/gs-core-2.0-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/junit-4.12.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/hamcrest-core-1.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/pherd-1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/mbox2-1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
