@@ -13,6 +13,8 @@ public class Network {
     Vertex []vertexes;
     Edge []edges;
     String algorithm;
+    Path shortestPath = null;
+    int startPath , endPath;
     private final String MST = "MST",
             FLOYD = "FLOYD",
             SCIEZKA ="SCIEZKA";
@@ -73,6 +75,13 @@ public class Network {
                 if(line.contains("ALGORYTM")){
                     String[] parts = line.split("= ");
                     algorithm = parts[1];
+                    continue;
+                }
+
+                if(algorithm.equals(SCIEZKA)){
+                    String[] parts = line.split(" ");
+                    startPath = Integer.parseInt(parts[0]);
+                    endPath = Integer.parseInt(parts[1]);
                 }
 
             }
@@ -101,12 +110,15 @@ public class Network {
                 KruskalMST();
                 break;
             case SCIEZKA:
+                Dijkstra(startPath, endPath);
                 break;
             case FLOYD:
                 break;
         }
     }
 
+
+    //KRUSKAL  MST
     // A utility function to find set of an element i
     // (uses path compression technique)
     int find(Subset subsets[], int i)
@@ -200,6 +212,97 @@ public class Network {
 //                    result[i].endVertexId+" == " + result[i].value);
     }
 
+    // Dikstra Sciezka
+
+    // A utility function to find the vertex with minimum distance value,
+    // from the set of vertices not yet included in shortest path tree
+    int minDistance(int dist[], Boolean sptSet[])
+    {
+        // Initialize min value
+        int min = Integer.MAX_VALUE, min_index=-1;
+
+        for (int v = 0; v < vertexes.length; v++)
+            if (sptSet[v] == false && dist[v] <= min)
+            {
+                min = dist[v];
+                min_index = v;
+            }
+
+        return min_index;
+    }
+
+    void Dijkstra(int startV, int endV){
+        int V = vertexes.length;
+        int edgeId = 0;
+        // The output array. dist[i] will hold the shortest distance from src to i
+        int dist[] = new int[V];
+
+        // sptSet[i] will true if vertex i is included in shortest
+        // path tree or shortest distance from src to i is finalized
+        Boolean sptSet[] = new Boolean[V];
+
+        // Initialize all distances as INFINITE and stpSet[] as false
+        for (int i = 0; i < V; i++)
+        {
+            dist[i] = Integer.MAX_VALUE;
+            sptSet[i] = false;
+        }
+
+        // Distance of source vertex from itself is always 0
+        dist[startV - 1] = 0;
+
+        // Find shortest path for all vertices
+        for (int count = 0; count < V-1; count++)
+        {
+            // Pick the minimum distance vertex from the set of vertices
+            // not yet processed. u is always equal to src in first
+            // iteration.
+            int u = minDistance(dist, sptSet);
+
+            // Mark the picked vertex as processed
+            sptSet[u] = true;
+
+
+            // Update dist value of the adjacent vertices of the
+            // picked vertex.
+            for (int v = 0; v < V; v++) {
+
+                edgeId = getEdge(u + 1, v + 1);
+
+                // Update dist[v] only if is not in sptSet, there is an
+                // edge from u to v, and total weight of path from src to
+                // v through u is smaller than current value of dist[v]
+                if (!sptSet[v] && edgeId != 0 &&
+                        dist[u] != Integer.MAX_VALUE &&
+                        dist[u] + edges[edgeId -1].value < dist[v])
+                    dist[v] = dist[u] + edges[edgeId -1].value;
+            }
+        }
+
+        //Getting the path
+        shortestPath = new Path();
+        int target = endV;
+        shortestPath.vertexesId.add(target);
+        while (target != startV) {
+            for (int v = 0; v < V; v++) {
+
+                edgeId = getEdge(v + 1, target);
+                if (sptSet[v] && edgeId != 0) {
+                    shortestPath.edgesId.add(edgeId);
+                    target = v + 1;
+                    shortestPath.vertexesId.add(target);
+                    break;
+                }
+
+
+            }
+        }
+
+
+
+    }
+
+
 
     public void showNet(){
         System.out.println(vertexes.length);
@@ -209,19 +312,36 @@ public class Network {
             System.out.println(edges[i].startVertexId + " -- " +
                     edges[i].endVertexId + " == " + edges[i].value);
         }
+
+
         Graph graph = new SingleGraph("Net") ;
         graph.addAttribute("ui.stylesheet", styleSheet);
-        int i = 0;
-        for (i = 0 ; i < vertexes.length ; i++){
-            Node n = graph.addNode(vertexes[i].id + "");
-            n.addAttribute("ui.label", "" + vertexes[i].id);
-            n.addAttribute("ui.class", "marked");
+        if(shortestPath != null){
+            for (Integer id: shortestPath.vertexesId){
+                Node n = graph.addNode(id + "");
+                n.addAttribute("ui.label", "" + id);
+                n.addAttribute("ui.class", "marked");
+            }
+            for (Integer id: shortestPath.edgesId){
+                org.graphstream.graph.Edge e = graph.addEdge(id +"", edges[id-1].startVertexId +"",
+                        edges[id - 1].endVertexId +"");
+                e.addAttribute("ui.label",id +"" );
+            }
+            graph.display();
         }
-        for (i = 0; i < edges.length; i++){
-            org.graphstream.graph.Edge e = graph.addEdge(edges[i].id +"", edges[i].startVertexId +"", edges[i].endVertexId +"");
-            e.addAttribute("ui.label",edges[i].id +"" );
+        else {
+            int i = 0;
+            for (i = 0 ; i < vertexes.length ; i++){
+                Node n = graph.addNode(vertexes[i].id + "");
+                n.addAttribute("ui.label", "" + vertexes[i].id);
+                n.addAttribute("ui.class", "marked");
+            }
+            for (i = 0; i < edges.length; i++){
+                org.graphstream.graph.Edge e = graph.addEdge(edges[i].id +"", edges[i].startVertexId +"", edges[i].endVertexId +"");
+                e.addAttribute("ui.label",edges[i].id +"" );
+            }
+            graph.display();
         }
-        graph.display();
     }
 
 
@@ -253,5 +373,15 @@ public class Network {
         Double v = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
         return v.intValue();
     }
+
+    private int getEdge(int StartId, int endId){
+        for (int i = 0; i < edges.length; i++){
+            if(edges[i].startVertexId == StartId &&
+                    edges[i].endVertexId == endId)
+                return edges[i].id;
+        }
+        return 0;
+    }
+
 
 }
