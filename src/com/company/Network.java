@@ -27,9 +27,7 @@ public class Network {
                     "	fill-color: red;" +
                     "}";
 
-    class Subset{
-        int parent, rank;
-    };
+
 
     public void readNetwork( String fileName){
         String line = null;
@@ -119,6 +117,10 @@ public class Network {
 
 
     //KRUSKAL  MST
+
+    class Subset{
+        int parent, rank;
+    };
     // A utility function to find set of an element i
     // (uses path compression technique)
     int find(Subset subsets[], int i)
@@ -282,20 +284,23 @@ public class Network {
         //Getting the path
         shortestPath = new Path();
         int target = endV;
+        int id =0, ver = 0;
         shortestPath.vertexesId.add(target);
         while (target != startV) {
             for (int v = 0; v < V; v++) {
 
                 edgeId = getEdge(v + 1, target);
-                if (sptSet[v] && edgeId != 0) {
-                    shortestPath.edgesId.add(edgeId);
-                    target = v + 1;
-                    shortestPath.vertexesId.add(target);
-                    break;
+                if (sptSet[v] && edgeId != 0 && dist[target -1] >  dist[v] ) {
+                    if(ver == 0 || dist[v] < dist[ver-1]) {
+                        ver = v + 1;
+                        id = edgeId;
+                    }
                 }
 
-
             }
+            shortestPath.edgesId.add(id);
+            target = ver;
+            shortestPath.vertexesId.add(target);
         }
 
 
@@ -374,11 +379,15 @@ public class Network {
         return v.intValue();
     }
 
-    private int getEdge(int StartId, int endId){
+    private int getEdge(int Id, int Id2){
         for (int i = 0; i < edges.length; i++){
-            if(edges[i].startVertexId == StartId &&
-                    edges[i].endVertexId == endId)
+            if(edges[i].startVertexId == Id &&
+                    edges[i].endVertexId == Id2
+                    || (edges[i].startVertexId == Id2 &&
+                    edges[i].endVertexId == Id))
                 return edges[i].id;
+
+
         }
         return 0;
     }
