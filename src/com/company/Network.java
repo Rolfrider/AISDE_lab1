@@ -1,5 +1,4 @@
 package com.company;
-import com.sun.deploy.util.ArrayUtil;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
@@ -9,12 +8,14 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Arrays;
 
+
 public class Network {
     Vertex []vertexes;
     Edge []edges;
     String algorithm;
     Path shortestPath = null;
     int startPath , endPath;
+    Path mstPath = null;
     private final String MST = "MST",
             FLOYD = "FLOYD",
             SCIEZKA ="SCIEZKA";
@@ -22,11 +23,22 @@ public class Network {
     protected String styleSheet =
             "node {" +
                     "	fill-color: black;" +
+                    "   size: 15px;" +
+                    "   text-size: 20 ;"+
                     "}" +
                     "node.marked {" +
-                    "	fill-color: red;" +
+                    "	fill-color: blue;" +
+                    "   text-color: blue ;"+
+                    "}"+
+             "edge {" +
+                    "  fill-color: black;" +
+                    "text-size: 20 ;"+
+                    "}" +
+                    "edge.marked {" +
+                    "  fill-color: blue;" +
+                    "   text-color: blue ;"+
+                    "   size: 3px;"+
                     "}";
-
 
 
     public void readNetwork( String fileName){
@@ -199,19 +211,19 @@ public class Network {
 
         }
 
-        if(result[result.length-1].id == 0){
-            Edge []tmp = new Edge[result.length -1];
-            for( i = 0; i< result.length-1; i++ ){
-                tmp[i] = result[i];
+        mstPath = new Path();
+        for(i = 0 ; i< result.length;i++){
+            if (result[i].id != 0)
+            {
+                mstPath.edgesId.add(result[i].id);
             }
-            edges = tmp;
         }
-        else
-            edges = result;
+        for(i = 0 ; i< vertexes.length;i++){
 
-//        for (i = 0; i < e; ++i)
-//            System.out.println(result[i].startVertexId+" -- " +
-//                    result[i].endVertexId+" == " + result[i].value);
+                mstPath.vertexesId.add(vertexes[i].id);
+        }
+
+
     }
 
     // Dikstra Sciezka
@@ -321,32 +333,39 @@ public class Network {
 
         Graph graph = new SingleGraph("Net") ;
         graph.addAttribute("ui.stylesheet", styleSheet);
-        if(shortestPath != null){
-            for (Integer id: shortestPath.vertexesId){
-                Node n = graph.addNode(id + "");
-                n.addAttribute("ui.label", "" + id);
+
+        int i = 0;
+        for (i = 0 ; i < vertexes.length ; i++){
+            Node n = graph.addNode(vertexes[i].id + "");
+            n.addAttribute("ui.label", "" + vertexes[i].id);
+            n.addAttribute("x", vertexes[i].x);
+            n.addAttribute("y", vertexes[i].y);
+        }
+        for (i = 0; i < edges.length; i++){
+            org.graphstream.graph.Edge e = graph.addEdge(edges[i].id +"", edges[i].startVertexId +"", edges[i].endVertexId +"");
+            e.addAttribute("ui.label",edges[i].id +"" );
+        }
+        graph.display();
+
+        Path path = null;
+        if (shortestPath != null)
+            path = shortestPath;
+        else if(mstPath != null)
+            path = mstPath;
+
+        if(path != null){
+            for (Integer id: path.vertexesId){
+                Node n = graph.getNode(id + "");
                 n.addAttribute("ui.class", "marked");
             }
-            for (Integer id: shortestPath.edgesId){
-                org.graphstream.graph.Edge e = graph.addEdge(id +"", edges[id-1].startVertexId +"",
-                        edges[id - 1].endVertexId +"");
-                e.addAttribute("ui.label",id +"" );
+            for (Integer id: path.edgesId){
+                org.graphstream.graph.Edge e = graph.getEdge(id +"");
+                e.addAttribute("ui.class", "marked");
             }
-            graph.display();
+           // graph.display();
         }
-        else {
-            int i = 0;
-            for (i = 0 ; i < vertexes.length ; i++){
-                Node n = graph.addNode(vertexes[i].id + "");
-                n.addAttribute("ui.label", "" + vertexes[i].id);
-                n.addAttribute("ui.class", "marked");
-            }
-            for (i = 0; i < edges.length; i++){
-                org.graphstream.graph.Edge e = graph.addEdge(edges[i].id +"", edges[i].startVertexId +"", edges[i].endVertexId +"");
-                e.addAttribute("ui.label",edges[i].id +"" );
-            }
-            graph.display();
-        }
+
+
     }
 
 
