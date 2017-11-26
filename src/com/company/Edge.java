@@ -23,6 +23,10 @@ public class Edge implements Comparable<Edge> {
         return id;
     }
 
+    public int getValue(){
+        return value;
+    }
+
     public int getStartVertex(){
         return startVertexId;
     }

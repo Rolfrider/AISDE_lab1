@@ -1,4 +1,6 @@
 package com.company;
+
+import com.sun.org.apache.xpath.internal.operations.Or;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
@@ -10,12 +12,14 @@ import java.util.Arrays;
 
 
 public class Network {
-    Vertex []vertexes;
+    Vertex [] vertices;
     Edge []edges;
     String algorithm;
     Path shortestPath = null;
     int startPath , endPath;
     Path mstPath = null;
+
+    final static int INF = 99999;
     private final String MST = "MST",
             FLOYD = "FLOYD",
             SCIEZKA ="SCIEZKA";
@@ -40,7 +44,6 @@ public class Network {
                     "   size: 3px;"+
                     "}";
 
-
     public void readNetwork( String fileName){
         String line = null;
 
@@ -57,14 +60,14 @@ public class Network {
                     continue;
 
                 if(line.contains("WEZLY")){
-                    vertexes = new Vertex[takeNumOf(line)];
-                    nV = vertexes.length;
+                    vertices = new Vertex[takeNumOf(line)];
+                    nV = vertices.length;
                     iV =0;
                     continue;
                 }
 
                 if( nV > iV){
-                    vertexes[iV] = updateVertex(line);
+                    vertices[iV] = updateVertex(line);
                     iV++;
                     continue;
                 }
@@ -93,7 +96,6 @@ public class Network {
                     startPath = Integer.parseInt(parts[0]);
                     endPath = Integer.parseInt(parts[1]);
                 }
-
             }
 
             // Always close files.
@@ -111,7 +113,6 @@ public class Network {
             // Or we could just do this:
             // ex.printStackTrace();
         }
-
     }
 
     public void useAlgorithm(){
@@ -123,10 +124,10 @@ public class Network {
                 Dijkstra(startPath, endPath);
                 break;
             case FLOYD:
+                Floyd(toMatrix());
                 break;
         }
     }
-
 
     //KRUSKAL  MST
 
@@ -167,11 +168,11 @@ public class Network {
         }
     }
 
-    void KruskalMST(){
-        int V = vertexes.length;
+    void KruskalMST() {
+        int V = vertices.length;
         Edge result[] = new Edge[V];
         int e = 0, i = 0;
-        for (i = 0; i< V; i++){
+        for (i = 0; i < V; i++) {
             result[i] = new Edge();
         }
 
@@ -180,18 +181,18 @@ public class Network {
         Arrays.sort(edges);
 
         Subset subsets[] = new Subset[V];
-        for (i=0; i<V; i++){
-            subsets[i]= new Subset();
+        for (i = 0; i < V; i++) {
+            subsets[i] = new Subset();
         }
 
-        for(int v = 0 ; v < V; v++){
-            subsets[v].parent = v +1;
+        for (int v = 0; v < V; v++) {
+            subsets[v].parent = v + 1;
             subsets[v].rank = 0;
         }
 
-        i =0;
+        i = 0;
 
-        while (e< V-1){
+        while (e < V - 1) {
 
             // Step 2: Pick the smallest edge. And increment
             // the index for next iteration
@@ -204,26 +205,22 @@ public class Network {
             // If including this edge does't cause cycle,
             // include it in result and increment the index
             // of result for next edge
-            if(x != y){
+            if (x != y) {
                 result[e++] = nextEdge;
                 Union(subsets, x, y);
             }
-
         }
 
         mstPath = new Path();
-        for(i = 0 ; i< result.length;i++){
-            if (result[i].id != 0)
-            {
+        for (i = 0; i < result.length; i++) {
+            if (result[i].id != 0) {
                 mstPath.edgesId.add(result[i].id);
             }
         }
-        for(i = 0 ; i< vertexes.length;i++){
+        for (i = 0; i < vertices.length; i++) {
 
-                mstPath.vertexesId.add(vertexes[i].id);
+            mstPath.vertexesId.add(vertices[i].id);
         }
-
-
     }
 
     // Dikstra Sciezka
@@ -235,18 +232,17 @@ public class Network {
         // Initialize min value
         int min = Integer.MAX_VALUE, min_index=-1;
 
-        for (int v = 0; v < vertexes.length; v++)
+        for (int v = 0; v < vertices.length; v++)
             if (sptSet[v] == false && dist[v] <= min)
             {
                 min = dist[v];
                 min_index = v;
             }
-
         return min_index;
     }
 
     void Dijkstra(int startV, int endV){
-        int V = vertexes.length;
+        int V = vertices.length;
         int edgeId = 0;
         // The output array. dist[i] will hold the shortest distance from src to i
         int dist[] = new int[V];
@@ -308,21 +304,79 @@ public class Network {
                         id = edgeId;
                     }
                 }
-
             }
             shortestPath.edgesId.add(id);
             target = ver;
             shortestPath.vertexesId.add(target);
         }
-
-
-
     }
 
+    //Floyd FLOYD
 
+    void Floyd(int graph[][])
+    {
+        int V = vertices.length;
+        int dist[][] = new int[V][V];
+        int i, j, k;
+
+        //Initialize the solution matrix same as input graph matrix.
+        //Or we can say the initial values of shortest distances
+        //are based on shortest paths considering no intermediate
+        //vertex.
+
+        for (i = 0; i < V; i++)
+            for (j = 0; j < V; j++)
+                dist[i][j] = graph[i][j];
+
+        /* Add all vertices one by one to the set of intermediate
+           vertices.
+          ---> Before start of a iteration, we have shortest
+               distances between all pairs of vertices such that
+               the shortest distances consider only the vertices in
+               set {0, 1, 2, .. k-1} as intermediate vertices.
+          ----> After the end of a iteration, vertex no. k is added
+                to the set of intermediate vertices and the set
+                becomes {0, 1, 2, .. k} */
+
+        for (k = 0; k < V; k++)
+        {
+            // Pick all vertices as source one by one
+            for (i = 0; i < V; i++)
+            {
+                // Pick all vertices as destination for the
+                // above picked source
+                for (j = 0; j < V; j++)
+                {
+                    // If vertex k is on the shortest path from
+                    // i to j, then update the value of dist[i][j]
+                    if (dist[i][k] + dist[k][j] < dist[i][j])
+                        dist[i][j] = dist[i][k] + dist[k][j];
+                }
+            }
+        }
+        // Print the shortest distance matrix
+        System.out.println("Following matrix shows the shortest "+
+              "distances between every pair of vertices");
+        printMatrix(dist);
+    }
+
+    void printMatrix(int dist[][])
+    {
+        int V = vertices.length;
+
+        for (int i=0; i<V; ++i) {
+            for (int j=0; j<V; ++j) {
+                if (dist[i][j]==INF)
+                    System.out.print("INF ");
+                else
+                    System.out.print(dist[i][j]+"   ");
+            }
+            System.out.println();
+        }
+    }
 
     public void showNet(){
-        System.out.println(vertexes.length);
+        System.out.println(vertices.length);
         System.out.println(edges.length);
         System.out.println(algorithm);
         for (int i = 0; i < edges.length; ++i) {
@@ -330,16 +384,15 @@ public class Network {
                     edges[i].endVertexId + " == " + edges[i].value);
         }
 
-
         Graph graph = new SingleGraph("Net") ;
         graph.addAttribute("ui.stylesheet", styleSheet);
 
         int i = 0;
-        for (i = 0 ; i < vertexes.length ; i++){
-            Node n = graph.addNode(vertexes[i].id + "");
-            n.addAttribute("ui.label", "" + vertexes[i].id);
-            n.addAttribute("x", vertexes[i].x);
-            n.addAttribute("y", vertexes[i].y);
+        for (i = 0 ; i < vertices.length ; i++){
+            Node n = graph.addNode(vertices[i].id + "");
+            n.addAttribute("ui.label", "" + vertices[i].id);
+            n.addAttribute("x", vertices[i].x);
+            n.addAttribute("y", vertices[i].y);
         }
         for (i = 0; i < edges.length; i++){
             org.graphstream.graph.Edge e = graph.addEdge(edges[i].id +"", edges[i].startVertexId +"", edges[i].endVertexId +"");
@@ -364,11 +417,31 @@ public class Network {
             }
            // graph.display();
         }
-
-
     }
 
+    private int[][] toMatrix(){
+        int size = vertices.length;
+        int[][] graph = new int [size][size];
 
+        for (int i = 0; i < size; i++ ) {
+            for (int n = 0; n < size; n++ ){
+                graph[i][n] = INF;
+            }
+            graph[i][i] = 0;
+        }
+
+        for (Edge edge : edges){
+            int from = edge.getStartVertex() - 1; // -1 because Id starts at 1 and arrays start from 0
+            int to  = edge.getEndVertex() - 1;
+            int val = edge.getValue();
+            graph[from][to] = val;
+            graph[to][from] = val;
+        }
+
+        System.out.println("Following matrix shows the values of existing edges");
+        printMatrix(graph);
+        return graph;
+    }
 
     private int takeNumOf(String line){
         String[] parts =line.split(" ");
@@ -392,8 +465,8 @@ public class Network {
     }
 
     private int calcValue(int startId, int endId){
-        double dx = vertexes[startId - 1].x - vertexes[endId - 1].x;
-        double dy = vertexes[startId-1].y - vertexes[endId-1].y;
+        double dx = vertices[startId - 1].x - vertices[endId - 1].x;
+        double dy = vertices[startId-1].y - vertices[endId-1].y;
         Double v = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
         return v.intValue();
     }
@@ -405,11 +478,7 @@ public class Network {
                     || (edges[i].startVertexId == Id2 &&
                     edges[i].endVertexId == Id))
                 return edges[i].id;
-
-
         }
         return 0;
     }
-
-
 }
