@@ -3,7 +3,7 @@ package com.company;
 public class Edge implements Comparable<Edge> {
 
 
-    int id, startVertexId, endVertexId, value;
+    private int id, startVertexId, endVertexId, value;
 
     Edge(){}
 
