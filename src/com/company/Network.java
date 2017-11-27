@@ -4,6 +4,7 @@ import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
 
+
 import java.io.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -25,11 +26,12 @@ public class Network {
     private String styleSheet =
             "node {" +
                     "	fill-color: black;" +
-                    "   size: 15px;" +
+                    "   size: 120px;" +
                     "   text-size: 20 ;"+
                     "}" +
                     "node.marked {" +
-                    "	fill-color: blue;" +
+                    "	fill-image: url('./Ig.png');" +
+                    " fill-mode: image-scaled;" +
                     "   text-color: blue ;"+
                     "}"+
              "edge {" +
@@ -41,6 +43,7 @@ public class Network {
                     "   text-color: blue ;"+
                     "   size: 3px;"+
                     "}";
+
 
     public void readNetwork( String fileName){
         String line = null;
@@ -137,8 +140,11 @@ public class Network {
                     edges[i].getEndVertex() + " == " + edges[i].getValue());
         }
 
+        System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
         Graph graph = new SingleGraph("Net") ;
         graph.addAttribute("ui.stylesheet", styleSheet);
+        graph.addAttribute("ui.antialias");
+
 
         int i ;
         for (i = 0 ; i < vertices.length ; i++){
@@ -146,6 +152,7 @@ public class Network {
             n.addAttribute("ui.label", "" + vertices[i].getId());
             n.addAttribute("x", vertices[i].getX());
             n.addAttribute("y", vertices[i].getY());
+
         }
         for (i = 0; i < edges.length; i++){
             org.graphstream.graph.Edge e = graph.addEdge(edges[i].getId() +"", edges[i].getStartVertex() +"", edges[i].getEndVertex() +"");
