@@ -7,6 +7,7 @@ import org.graphstream.graph.implementations.SingleGraph;
 import java.io.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 
 
 public class Network {
@@ -16,6 +17,7 @@ public class Network {
     private Path shortestPath = null;
     private int startPath , endPath;
     private Path mstPath = null;
+    private ArrayList<Pair> floydPts = new ArrayList<>();
 
     private final static int INF = Integer.MAX_VALUE;
     private final String MST = "MST",
@@ -94,6 +96,15 @@ public class Network {
                     startPath = Integer.parseInt(parts[0]);
                     endPath = Integer.parseInt(parts[1]);
                 }
+
+                if(algorithm.equals(FLOYD)){
+                    do{
+                    String[] parts = line.split(" ");
+                    floydPts.add(new Pair(Integer.parseInt(parts[0]), Integer.parseInt(parts[1])));
+                    }while((line = bufferedReader.readLine()) != null && !line.startsWith("#"));
+                }
+                //for (int i = 0; i < floydPts.size(); i++)
+                //    System.out.println(floydPts.get(i).getLeft() + " " + floydPts.get(i).getRight());
             }
 
             // Always close files.
@@ -122,11 +133,10 @@ public class Network {
                 shortestPath = Algorithm.Dijkstra(startPath, endPath,vertices, edges);
                 break;
             case FLOYD:
-                Algorithm.Floyd(toMatrix(), vertices.length);
+                Algorithm.Floyd(toMatrix(), vertices.length, floydPts);
                 break;
         }
     }
-
 
     public void showNet(){
         System.out.println(vertices.length);
@@ -138,19 +148,23 @@ public class Network {
         }
 
         Graph graph = new SingleGraph("Net") ;
+
+        graph.addAttribute("ui.antialias");
         graph.addAttribute("ui.stylesheet", styleSheet);
 
         int i ;
         for (i = 0 ; i < vertices.length ; i++){
             Node n = graph.addNode(vertices[i].getId() + "");
-            n.addAttribute("ui.label", "" + vertices[i].getId());
+            n.addAttribute("ui.label", "V" + vertices[i].getId());
             n.addAttribute("x", vertices[i].getX());
             n.addAttribute("y", vertices[i].getY());
+
         }
         for (i = 0; i < edges.length; i++){
             org.graphstream.graph.Edge e = graph.addEdge(edges[i].getId() +"", edges[i].getStartVertex() +"", edges[i].getEndVertex() +"");
             e.addAttribute("ui.label",""+ edges[i].getValue() );
         }
+
         graph.display();
 
         Path path = null;
@@ -191,8 +205,9 @@ public class Network {
             graph[to][from] = val;
         }
 
-        System.out.println("Following matrix shows the values of existing edges");
+        //System.out.println("Following matrix shows the values of existing edges");
         //printMatrix(graph);
+
         return graph;
     }
 
@@ -206,7 +221,6 @@ public class Network {
         String[] parts =line.split(" ");
         return new Vertex(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]),
                 Integer.parseInt(parts[2]));
-
     }
 
     private Edge updateEdge(String line){
@@ -224,5 +238,20 @@ public class Network {
         return v.intValue();
     }
 
+    public class Pair {
+        private int left;
+        private int right;
 
+        public Pair(int left, int right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        public int getLeft() {
+            return left;
+        }
+        public int getRight() {
+            return right;
+        }
+    }
 }

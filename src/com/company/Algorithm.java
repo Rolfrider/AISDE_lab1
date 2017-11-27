@@ -1,10 +1,9 @@
 package com.company;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Algorithm {
-
-
 
     //KRUSKAL  MST
 
@@ -39,8 +38,7 @@ public class Algorithm {
 
             // If ranks are same, then make one as root and increment
             // its rank by one
-        else
-        {
+        else {
             subsets[yroot-1].parent = xroot;
             subsets[xroot-1].rank++;
         }
@@ -194,7 +192,7 @@ public class Algorithm {
 
     //Floyd FLOYD
 
-    static void Floyd(int graph[][], int V)
+    static void Floyd(int graph[][], int V, ArrayList<Network.Pair> floydPts)
     {
         int dist[][] = new int[V][V];
         int i, j, k;
@@ -237,14 +235,20 @@ public class Algorithm {
         // Print the shortest distance matrix
         System.out.println("Following matrix shows the shortest "+
                 "distances between every pair of vertices");
-        printMatrix(dist, V);
+        printMatrix(dist);
+        // Print wanted paths
+        for (int l = 0; l < floydPts.size(); l++) {
+            int left = floydPts.get(l).getLeft();
+            int right = floydPts.get(l).getRight();
+            System.out.println("Shortest path from vertex " + left +
+                    " to " + right + " has a value of " + dist[left-1][right-1]);
+        }
     }
 
-    private static void printMatrix(int dist[][], int V)
+    private static void printMatrix(int dist[][])
     {
-
-        for (int i=0; i<V; ++i) {
-            for (int j=0; j<V; ++j) {
+        for (int i=0; i<dist.length; ++i) {
+            for (int j=0; j<dist[0].length; ++j) {
                 if (dist[i][j]==Integer.MAX_VALUE)
                     System.out.print("INF");
                 else
