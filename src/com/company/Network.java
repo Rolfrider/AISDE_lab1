@@ -3,6 +3,7 @@ package com.company;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.ui.view.Viewer;
 
 import java.io.*;
 import java.io.BufferedReader;
@@ -14,15 +15,18 @@ public class Network {
     private Vertex [] vertices;
     private Edge []edges;
     private String algorithm;
-    private Path shortestPath = null;
+    private ArrayList<Integer> optional = new ArrayList<>();
+    private Path shortestPath = null, stainerTree = null;
     private int startPath , endPath;
     private Path mstPath = null;
+    private ArrayList<Path> floydPaths = new ArrayList<>();
     private ArrayList<Pair> floydPts = new ArrayList<>();
-
-    private final static int INF = Integer.MAX_VALUE;
+    private int[][] graphTab = null;
+    private final static int INF = Integer.MAX_VALUE/2;
     private final String MST = "MST",
             FLOYD = "FLOYD",
-            SCIEZKA ="SCIEZKA";
+            SCIEZKA ="SCIEZKA",
+            STEINER = "STEINER";
 
     private String styleSheet =
             "node {" +
@@ -97,11 +101,13 @@ public class Network {
                     endPath = Integer.parseInt(parts[1]);
                 }
 
+                if(algorithm.equals(STEINER)){
+                    optional.add(Integer.parseInt(line));
+                }
+
                 if(algorithm.equals(FLOYD)){
-                    do{
                     String[] parts = line.split(" ");
                     floydPts.add(new Pair(Integer.parseInt(parts[0]), Integer.parseInt(parts[1])));
-                    }while((line = bufferedReader.readLine()) != null && !line.startsWith("#"));
                 }
                 //for (int i = 0; i < floydPts.size(); i++)
                 //    System.out.println(floydPts.get(i).getLeft() + " " + floydPts.get(i).getRight());
@@ -130,10 +136,26 @@ public class Network {
                 mstPath = Algorithm.KruskalMST(vertices, edges);
                 break;
             case SCIEZKA:
-                shortestPath = Algorithm.Dijkstra(startPath, endPath,vertices, edges);
+                shortestPath = Algorithm.Dijkstra(startPath, endPath,vertices, edges, null);
                 break;
             case FLOYD:
-                Algorithm.Floyd(toMatrix(), vertices.length, floydPts);
+                graphTab = Algorithm.Floyd(toMatrix(), vertices.length, floydPts);
+                for (Pair i: floydPts){
+                    floydPaths.add(getPath(graphTab[i.getLeft()-1],i.getLeft(),i.getRight()));
+                }
+                break;
+            case STEINER:
+                for(int i : optional)
+                    System.out.println("optional " + i);
+                int sum = INF;
+                for(int i = 0 ; vertices.length>i; i++) {
+                    Path path = Algorithm.Dijkstra(i+1, 0, vertices, edges, optional);
+                    System.out.println(i +1+" "+ sumOfEdges(path));
+                    if(sum > sumOfEdges(path)){
+                        stainerTree = path;
+                        sum = sumOfEdges(path);
+                    }
+                }
                 break;
         }
     }
@@ -147,43 +169,67 @@ public class Network {
                     edges[i].getEndVertex() + " == " + edges[i].getValue());
         }
 
-        Graph graph = new SingleGraph("Net") ;
 
-        graph.addAttribute("ui.antialias");
-        graph.addAttribute("ui.stylesheet", styleSheet);
+        if(algorithm.equals(FLOYD)){
+            Graph[] graphs = new SingleGraph[floydPaths.size()];
+            for(int i =0; floydPaths.size() > i; i++){
+                graphs[i] = new SingleGraph(i +"");
+                graphs[i].addAttribute("ui.antialias");
 
-        int i ;
-        for (i = 0 ; i < vertices.length ; i++){
-            Node n = graph.addNode(vertices[i].getId() + "");
-            n.addAttribute("ui.label", "V" + vertices[i].getId());
-            n.addAttribute("x", vertices[i].getX());
-            n.addAttribute("y", vertices[i].getY());
-
-        }
-        for (i = 0; i < edges.length; i++){
-            org.graphstream.graph.Edge e = graph.addEdge(edges[i].getId() +"", edges[i].getStartVertex() +"", edges[i].getEndVertex() +"");
-            e.addAttribute("ui.label",""+ edges[i].getValue() );
-        }
-
-        graph.display();
-
-        Path path = null;
-        if (shortestPath != null)
-            path = shortestPath;
-        else if(mstPath != null)
-            path = mstPath;
-
-        if(path != null){
-            for (Integer id: path.vertexesId){
-                Node n = graph.getNode(id + "");
-                n.addAttribute("ui.class", "marked");
+                Path path = floydPaths.get(i);
+                for (Integer id : path.vertexesId) {
+                    Node n = graphs[i].addNode( id+ "");
+                    n.addAttribute("ui.label", "V" + id);
+                }
+                for (Integer id : path.edgesId) {
+                    org.graphstream.graph.Edge e = graphs[i].addEdge( id + "",  edges[id-1].getStartVertex()+ "", edges[id-1].getEndVertex() + "");
+                    e.addAttribute("ui.label", "" + edges[id-1].getValue());
+                }
+                graphs[i].display();
             }
-            for (Integer id: path.edgesId){
-                org.graphstream.graph.Edge e = graph.getEdge(id +"");
-                e.addAttribute("ui.class", "marked");
-            }
-           // graph.display();
         }
+
+
+            Graph graph = new SingleGraph("Net") ;
+            graph.addAttribute("ui.antialias");
+            graph.addAttribute("ui.stylesheet", styleSheet);
+            int i;
+            for (i = 0; i < vertices.length; i++) {
+                Node n = graph.addNode(vertices[i].getId() + "");
+                n.addAttribute("ui.label", "V" + vertices[i].getId());
+                n.addAttribute("x", vertices[i].getX());
+                n.addAttribute("y", vertices[i].getY());
+
+
+            }
+            for (i = 0; i < edges.length; i++) {
+                org.graphstream.graph.Edge e = graph.addEdge(edges[i].getId() + "", edges[i].getStartVertex() + "", edges[i].getEndVertex() + "");
+                e.addAttribute("ui.label", "" + edges[i].getValue());
+            }
+
+            Viewer viewer =graph.display();
+            //viewer.disableAutoLayout();
+
+            Path path = null;
+            if (shortestPath != null)
+                path = shortestPath;
+            else if (mstPath != null)
+                path = mstPath;
+            else if(stainerTree != null)
+                path = stainerTree;
+
+            if (path != null) {
+                for (Integer id : path.vertexesId) {
+                    Node n = graph.getNode(id + "");
+                    n.addAttribute("ui.class", "marked");
+                }
+                for (Integer id : path.edgesId) {
+                    org.graphstream.graph.Edge e = graph.getEdge(id + "");
+                    e.addAttribute("ui.class", "marked");
+                }
+                // graph.display();
+            }
+
     }
 
     private int[][] toMatrix(){
@@ -206,7 +252,7 @@ public class Network {
         }
 
         //System.out.println("Following matrix shows the values of existing edges");
-        //printMatrix(graph);
+        //Algorithm.printMatrix(graph);
 
         return graph;
     }
@@ -253,5 +299,36 @@ public class Network {
         public int getRight() {
             return right;
         }
+    }
+
+    private int sumOfEdges(Path path){
+        int sum = 0;
+        for (int id: path.edgesId) {
+            sum += edges[id - 1].getValue();
+        }
+        return sum;
+    }
+
+    private Path getPath(int dist[], int startId, int endId){
+        Path shortestPath = new Path();
+        int target = endId, edgeId;
+        int id =0, ver = 0;
+        shortestPath.vertexesId.add(target);
+        while (target != startId) {
+            for (int v = 0; v < dist.length; v++) {
+
+                edgeId = Algorithm.getEdge(v + 1, target, edges);
+                if (edgeId != 0 && dist[target -1] >  dist[v] ) {
+                    if(ver == 0 || dist[v] < dist[ver-1]) {
+                        ver = v + 1;
+                        id = edgeId;
+                    }
+                }
+            }
+            shortestPath.edgesId.add(id);
+            target = ver;
+            shortestPath.vertexesId.add(target);
+        }
+        return shortestPath;
     }
 }

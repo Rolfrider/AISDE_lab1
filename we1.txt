@@ -7,7 +7,7 @@ WEZLY = 5
 2 30 56
 3 45 32
 4 90 23
-5 44 33
+5 44 66
 # liczba krawedzi
 LACZA = 8
 # kazde lacze to trojka (identyfikator, wezel poczatkowy, wezel koncowy)
@@ -20,7 +20,7 @@ LACZA = 8
 7 3 4
 8 1 5
 # algorytm, ktory nalezy wywolac; mozliwosci: MST, SCIEZKA, FLOYD
-ALGORYTM = FLOYD
+ALGORYTM = MST
 # jezeli algorytmem jest SCIEZKA to w kolejnej linii mamy pare interesujacych nas wezlow
 1 5
 # jezeli algorytmem jest FLOYD to w kolejnych liniach, az do konca pliku, mamy interesujace nas pary wezlow, np.

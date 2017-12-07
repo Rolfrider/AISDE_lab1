@@ -6,4 +6,5 @@ public class Path {
 
     List<Integer> vertexesId = new ArrayList<>();
     List<Integer> edgesId = new ArrayList<>();
+
 }

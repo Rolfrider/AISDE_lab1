@@ -118,7 +118,7 @@ public class Algorithm {
         return min_index;
     }
 
-    static Path Dijkstra(int startV, int endV, Vertex vertices[], Edge edges[]){
+    static Path Dijkstra(int startV, int endV, Vertex vertices[], Edge edges[], ArrayList<Integer> optional){
         int V = vertices.length;
         int edgeId ;
         // The output array. dist[i] will hold the shortest distance from src to i
@@ -166,33 +166,57 @@ public class Algorithm {
             }
         }
 
-        //Getting the path
-        Path shortestPath = new Path();
-        int target = endV;
-        int id =0, ver = 0;
-        shortestPath.vertexesId.add(target);
-        while (target != startV) {
-            for (int v = 0; v < V; v++) {
+        Path steinerTree = null;
 
-                edgeId = getEdge(v + 1, target, edges);
-                if (sptSet[v] && edgeId != 0 && dist[target -1] >  dist[v] ) {
-                    if(ver == 0 || dist[v] < dist[ver-1]) {
-                        ver = v + 1;
-                        id = edgeId;
+        for (Vertex sV: vertices ) {
+            endV = sV.getId();
+            if(endV == startV || optional.contains(endV))
+                continue;
+            //Getting the path
+            Path shortestPath = new Path();
+            int target = endV;
+            int id = 0, ver = 0;
+            shortestPath.vertexesId.add(target);
+            while (target != startV) {
+                for (int v = 0; v < V; v++) {
+
+                    edgeId = getEdge(v + 1, target, edges);
+                    if (sptSet[v] && edgeId != 0 && dist[target - 1] > dist[v]) {
+                        if (ver == 0 || dist[v] < dist[ver - 1]) {
+                            ver = v + 1;
+                            id = edgeId;
+                        }
                     }
                 }
+                shortestPath.edgesId.add(id);
+                target = ver;
+                shortestPath.vertexesId.add(target);
             }
-            shortestPath.edgesId.add(id);
-            target = ver;
-            shortestPath.vertexesId.add(target);
+            if(steinerTree == null){
+                steinerTree = shortestPath;
+            }
+            else {
+                for (int idS : shortestPath.edgesId) {
+                    if (!steinerTree.edgesId.contains(idS))
+                        steinerTree.edgesId.add(idS);
+                }
+                for (int idS : shortestPath.vertexesId) {
+                    if (!steinerTree.vertexesId.contains(idS))
+                        steinerTree.vertexesId.add(idS);
+                }
+            }
         }
 
-        return shortestPath;
+
+
+        return steinerTree;
     }
+
+
 
     //Floyd FLOYD
 
-    static void Floyd(int graph[][], int V, ArrayList<Network.Pair> floydPts)
+    static int[][] Floyd(int graph[][], int V, ArrayList<Network.Pair> floydPts)
     {
         int dist[][] = new int[V][V];
         int i, j, k;
@@ -243,14 +267,16 @@ public class Algorithm {
             System.out.println("Shortest path from vertex " + left +
                     " to " + right + " has a value of " + dist[left-1][right-1]);
         }
+
+        return graph;
     }
 
-    private static void printMatrix(int dist[][])
+    public static void printMatrix(int dist[][])
     {
         for (int i=0; i<dist.length; ++i) {
             for (int j=0; j<dist[0].length; ++j) {
-                if (dist[i][j]==Integer.MAX_VALUE)
-                    System.out.print("INF");
+                if (dist[i][j]>=Integer.MAX_VALUE/2)
+                    System.out.print("INF ");
                 else
                     System.out.print(dist[i][j]+"   ");
             }
@@ -258,7 +284,7 @@ public class Algorithm {
         }
     }
 
-    private static int getEdge(int Id, int Id2, Edge edges[]){
+    public static int getEdge(int Id, int Id2, Edge edges[]){
         for(Edge edge : edges){
             if(edge.getStartVertex() == Id &&
                     edge.getEndVertex() == Id2
