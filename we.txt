@@ -6,7 +6,7 @@ WEZLY = 10 # kazdy wezel to trojka (identyfikator, wspolrzedna X, wspolrzedna Y)
 2 30 56
 3 45 32
 4 90 23
-5 44 33
+5 60 33
 6 105 70
 7 105 11
 8 56 32
@@ -30,9 +30,10 @@ LACZA = 15
 13 10 9
 14 8 4
 15 10 1
-# algorytm, ktory nalezy wywolac; mozliwosci: MST, SCIEZKA, FLOYD
+# algorytm, ktory nalezy wywolac; mozliwosci: MST, SCIEZKA, FLOYD, STEINER
 ALGORYTM = STEINER
 # jezeli algorytmem jest SCIEZKA to w kolejnej linii mamy pare interesujacych nas wezlow
+# jezelo algorytmem jest STEINER to w kolejnych liniach mamy opcjonalne wezly
 5
 3
 9

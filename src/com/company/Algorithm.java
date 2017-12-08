@@ -100,7 +100,7 @@ public class Algorithm {
         return mstPath;
     }
 
-    // Dikstra Sciezka
+    // Dikstra Sciezka i Steiner
 
     // A utility function to find the vertex with minimum distance value,
     // from the set of vertices not yet included in shortest path tree
@@ -166,23 +166,58 @@ public class Algorithm {
             }
         }
 
-        Path steinerTree = null;
+        Path path = null;
+        if (optional != null) {
+            // Getting Stainer tree
+            for (Vertex sV : vertices) {
+                endV = sV.getId();
+                if (endV == startV || optional.contains(endV))
+                    continue;
+                Path shortestPath = new Path();
+                int target = endV;
+                int id = 0, ver = 0;
+                shortestPath.vertexesId.add(target);
+                while (target != startV) {
+                    for (int v = 0; v < V; v++) {
 
-        for (Vertex sV: vertices ) {
-            endV = sV.getId();
-            if(endV == startV || optional.contains(endV))
-                continue;
-            //Getting the path
+                        edgeId = getEdge(v + 1, target, edges);
+                        if (sptSet[v] && edgeId != 0 && dist[target - 1] > dist[v]) {
+                            if (ver == 0 || dist[v] < dist[ver - 1]) {
+                                ver = v + 1;
+                                id = edgeId;
+                            }
+                        }
+                    }
+                    shortestPath.edgesId.add(id);
+                    target = ver;
+                    shortestPath.vertexesId.add(target);
+                }
+                if (path == null) {
+                    path = shortestPath;
+                } else {
+                    for (int idS : shortestPath.edgesId) {
+                        if (!path.edgesId.contains(idS))
+                            path.edgesId.add(idS);
+                    }
+                    for (int idS : shortestPath.vertexesId) {
+                        if (!path.vertexesId.contains(idS))
+                            path.vertexesId.add(idS);
+                    }
+                }
+            }
+        }
+        else {
+            // Getting shortest path
             Path shortestPath = new Path();
             int target = endV;
-            int id = 0, ver = 0;
+            int id =0, ver = 0;
             shortestPath.vertexesId.add(target);
             while (target != startV) {
                 for (int v = 0; v < V; v++) {
 
                     edgeId = getEdge(v + 1, target, edges);
-                    if (sptSet[v] && edgeId != 0 && dist[target - 1] > dist[v]) {
-                        if (ver == 0 || dist[v] < dist[ver - 1]) {
+                    if (sptSet[v] && edgeId != 0 && dist[target -1] >  dist[v] ) {
+                        if(ver == 0 || dist[v] < dist[ver-1]) {
                             ver = v + 1;
                             id = edgeId;
                         }
@@ -192,24 +227,12 @@ public class Algorithm {
                 target = ver;
                 shortestPath.vertexesId.add(target);
             }
-            if(steinerTree == null){
-                steinerTree = shortestPath;
-            }
-            else {
-                for (int idS : shortestPath.edgesId) {
-                    if (!steinerTree.edgesId.contains(idS))
-                        steinerTree.edgesId.add(idS);
-                }
-                for (int idS : shortestPath.vertexesId) {
-                    if (!steinerTree.vertexesId.contains(idS))
-                        steinerTree.vertexesId.add(idS);
-                }
-            }
+            path  = shortestPath;
         }
 
 
 
-        return steinerTree;
+        return path;
     }
 
 

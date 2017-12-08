@@ -7,8 +7,6 @@ public class Main {
         net.readNetwork("we.txt");
         net.useAlgorithm();
         System.out.println();
-        //System.out.println("Following are the edges in " +
-        //      "the constructed MST");
         net.showNet();
 
     }

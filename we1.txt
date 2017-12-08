@@ -20,7 +20,7 @@ LACZA = 8
 7 3 4
 8 1 5
 # algorytm, ktory nalezy wywolac; mozliwosci: MST, SCIEZKA, FLOYD
-ALGORYTM = MST
+ALGORYTM = SCIEZKA
 # jezeli algorytmem jest SCIEZKA to w kolejnej linii mamy pare interesujacych nas wezlow
 1 5
 # jezeli algorytmem jest FLOYD to w kolejnych liniach, az do konca pliku, mamy interesujace nas pary wezlow, np.

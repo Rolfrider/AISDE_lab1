@@ -161,8 +161,11 @@ public class Network {
     }
 
     public void showNet(){
+        System.out.println("Number of vertices");
         System.out.println(vertices.length);
+        System.out.println("Number of edges");
         System.out.println(edges.length);
+        System.out.println("Used algorithm");
         System.out.println(algorithm);
         for (int i = 0; i < edges.length; ++i) {
             System.out.println("Id: " + edges[i].getId() + " | " + edges[i].getStartVertex() + " -- " +
@@ -208,7 +211,7 @@ public class Network {
             }
 
             Viewer viewer =graph.display();
-            //viewer.disableAutoLayout();
+            viewer.disableAutoLayout();
 
             Path path = null;
             if (shortestPath != null)
